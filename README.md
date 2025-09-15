@@ -1,1 +1,0 @@
-# qr-prank-download
