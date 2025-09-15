@@ -2,108 +2,47 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>QR Prank Download</title>
+<title>QR Prank – Terms of Use</title>
 <style>
   body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; }
   textarea { width: 100%; height: 300px; }
-  .download { display: none; margin-top: 1rem; }
+  .controls { margin-top: 1rem; }
+  #agreeBtn { padding: 0.6rem 1.2rem; font-size: 1rem; }
+  #countdown { font-weight: bold; color: #c00; }
 </style>
 </head>
 <body>
 
 <h1>QR Prank – Terms of Use</h1>
 
-<!-- The terms text that people must read -->
 <textarea readonly>
-[===============================
-⚠️  PRANK SCRIPT - WARNING ⚠️
-===============================
-
-This project is for HARMLESS FUN ONLY.
-It is NOT a virus. It does not damage your files,
-operating system, or computer.
-
-WHAT IT DOES:
-- Spawns fake "error" popups with a QR code
-- Plays a funny error sound
-- Auto-closes automatically
-- Provides a STOP button to exit anytime
-
-WHAT IT DOES NOT DO:
-- Modify or delete files
-- Access the internet
-- Steal information
-- Cause permanent harm to your system
-
-===============================
-📜 LEGAL NOTICE
-===============================
-
-Under Thai Law:
-- According to the Thai Computer Crime Act B.E. 2550 (2007) 
-  and amendments, creating or distributing malware, or 
-  software that causes real harm, is illegal.
-- This prank does not fall into that category since it 
-  does not cause damage or unauthorized access.
-- Misuse of this script to cause fear, harassment, or 
-  damage could still violate Thai law.
-
-Under International Law:
-- Many countries (US, EU, UK, etc.) have cybercrime laws 
-  that prohibit the creation or distribution of malicious 
-  software.
-- This script is NOT malware. It is purely educational 
-  and comedic, with built-in safety features (STOP button, 
-  auto-close).
-- Misusing or distributing it as a "virus" could still 
-  result in legal consequences.
-
-===============================
-✅ SAFE USE POLICY
-===============================
-- Use only on your own computer or with permission.
-- Always inform others it is a prank.
-- Do NOT distribute as harmful software.
-- This script is provided "AS IS" without warranty.
-- The creator is NOT responsible for misuse.
-
-===============================
-© COPYRIGHT NOTICE
-===============================
-Copyright (c) 2025 APIWISH ANUTARAVANICHKUL  
-All rights reserved.  
-This project is distributed for educational and entertainment 
-purposes only. Redistribution as malware is strictly prohibited.
-
-===============================
-⚖️  COPYRIGHT NOTICE
-===============================
-This software is protected by international copyright law.
-- Under Thai law (Computer Crime Act B.E. 2550 and amendments),
-  unauthorized use of malicious or harmful software is illegal.
-- Under international copyright law, the MIT License applies,
-  which permits free use, modification, and distribution provided
-  that this copyright notice and license are included.
-
-By using this software, you agree that it is provided
-"AS IS", without warranty of any kind, as stated in the MIT License.
-
-]
+[PASTE your full warning.txt text here]
 </textarea>
 
-<label>
-  <input type="checkbox" id="agreeBox">
-  I have read and agree to the Terms above.
-</label>
-
-<div class="download">
-  <p><strong>Click below to download:</strong></p>
-  <a id="downloadLink" href="prank.zip" download>Download QR Prank (ZIP)</a>
+<div class="controls">
+  <p id="countdown">Please read the terms. You can agree in 10 seconds.</p>
+  <button id="agreeBtn" disabled>I Agree</button>
 </div>
 
 <script>
-document.getElementById('agreeBox').addEventListener('change', function () {
-  document.querySelector('.download').style.display = this.checked ? 'block' : 'none';
+let seconds = 10;
+const countdown = document.getElementById('countdown');
+const agreeBtn  = document.getElementById('agreeBtn');
+
+const timer = setInterval(() => {
+  seconds--;
+  if (seconds > 0) {
+    countdown.textContent = `Please read the terms. You can agree in ${seconds} second${seconds===1?'':'s'}.`;
+  } else {
+    clearInterval(timer);
+    countdown.textContent = "You may now click I Agree if you accept the terms.";
+    agreeBtn.disabled = false;
+  }
+}, 1000);
+
+agreeBtn.addEventListener('click', () => {
+  // Go to the next page
+  window.location.href = "download.html";
 });
 </script>
 
