@@ -90,7 +90,8 @@ By clicking “I Agree” and/or downloading or using the Software, you acknowle
 
 <script>
 // Google Apps Script Web App URL
-const SHEETS_ENDPOINT = 'https://script.google.com/a/macros/student.sk.ac.th/s/AKfycbzWNg1Gco-8djSOx6zU1gUOMqyj2qpwxSLmD6LWzO9zLEN-Nc7sfsDEFmjwowa-d4KK/exec';
+const SHEETS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyZydwNe-Ug5C1bkTk81HfslwE-jcCK_3AkoFaDcr5xuJOs3lipXWt8zwwI5woUhVTt/exec';
+const REDIRECT_DELAY_MS = 300; // allow network to enqueue before leaving page
 
 /* ---------- check for previous consent ---------- */
 const existing = localStorage.getItem("qrPrankAgreed");
@@ -143,14 +144,14 @@ agreeBtn.addEventListener('click', () => {
         body: payload,
         keepalive: true,
         mode: 'no-cors'
-      }).catch(() => {});
+      }).catch((err) => { try { console.debug('Sheets fetch failed', err); } catch (_) {} });
     }
   } catch (_) {
     // non-blocking; continue regardless
   }
 
   // redirect to download page
-  window.location.href = "download.html";
+  setTimeout(() => { window.location.href = "download.html"; }, REDIRECT_DELAY_MS);
 });
 </script>
 
