@@ -86,19 +86,12 @@ By clicking “I Agree” and/or downloading or using the Software, you acknowle
   <button id="agreeBtn" disabled>I Agree</button>
 </div>
 
-<!-- ✅ Dummy form so Netlify always detects it -->
-<form name="agreements" netlify>
-  <input type="hidden" name="timestamp" value="init">
-  <input type="hidden" name="userAgent" value="init">
-</form>
-
-<!-- ✅ Hidden real form for auto submission -->
-<form name="agreements" netlify netlify-honeypot="bot-field" hidden>
-  <input type="hidden" name="timestamp" id="timestampField">
-  <input type="hidden" name="userAgent" id="userAgentField">
-</form>
+<!-- Forms removed: directly sending to Google Sheets endpoint -->
 
 <script>
+// Google Apps Script Web App URL
+const SHEETS_ENDPOINT = 'https://script.google.com/a/macros/student.sk.ac.th/s/AKfycbzWNg1Gco-8djSOx6zU1gUOMqyj2qpwxSLmD6LWzO9zLEN-Nc7sfsDEFmjwowa-d4KK/exec';
+
 /* ---------- check for previous consent ---------- */
 const existing = localStorage.getItem("qrPrankAgreed");
 if (existing) {
@@ -125,16 +118,36 @@ const timer = setInterval(() => {
 agreeBtn.addEventListener('click', () => {
   const consentData = {
     timestamp: new Date().toISOString(),
-    userAgent: navigator.userAgent
+    userAgent: navigator.userAgent,
+    language: navigator.language || (navigator.languages && navigator.languages[0]) || '',
+    platform: navigator.platform || '',
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || '',
+    screen: `${window.screen?.width || ''}x${window.screen?.height || ''} (${window.devicePixelRatio || 1}dpr)`,
+    viewport: `${window.innerWidth || ''}x${window.innerHeight || ''}`,
+    referrer: document.referrer || '',
+    hardwareConcurrency: typeof navigator.hardwareConcurrency === 'number' ? String(navigator.hardwareConcurrency) : '',
+    deviceMemory: typeof navigator.deviceMemory === 'number' ? `${navigator.deviceMemory}GB` : ''
   };
 
   // store locally
   localStorage.setItem("qrPrankAgreed", JSON.stringify(consentData));
 
-  // send to Netlify
-  document.getElementById("timestampField").value = consentData.timestamp;
-  document.getElementById("userAgentField").value = consentData.userAgent;
-  document.forms["agreements"].submit();
+  // send to Google Sheets (best-effort)
+  try {
+    const payload = JSON.stringify(consentData);
+    const blob = new Blob([payload], { type: 'application/json' });
+    if (!(navigator.sendBeacon && navigator.sendBeacon(SHEETS_ENDPOINT, blob))) {
+      fetch(SHEETS_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload,
+        keepalive: true,
+        mode: 'no-cors'
+      }).catch(() => {});
+    }
+  } catch (_) {
+    // non-blocking; continue regardless
+  }
 
   // redirect to download page
   window.location.href = "download.html";
