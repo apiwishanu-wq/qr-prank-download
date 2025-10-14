@@ -89,8 +89,10 @@ By clicking “I Agree” and/or downloading or using the Software, you acknowle
 <!-- Forms removed: directly sending to Google Sheets endpoint -->
 
 <script>
-// Google Apps Script Web App URL
-const SHEETS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyA1dpwcVHpDHQZGhU9VLovRoXkpftBlmM7nBXJdllh_IKGp4g0kz2nA7efw6vCG9AG/exec';
+// Google Sheets API with service account
+const SHEET_ID = '14YyTmWRLdfd229O2a7fAfvb-lKheEPnAqFsySG7ESuc';
+const SERVICE_ACCOUNT_EMAIL = 'agreement@deft-bliss-475102-e4.iam.gserviceaccount.com';
+const PRIVATE_KEY = '-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQClWao/WjVHkxpj\nrLYhGhVMG+hckXWWhJPmcpGbCNKsW1u9w9sT2JIDGaWN2vrf2OjG+/ulINsGfvj9\npX0Ix3QVTiMqjWH8T/KBzjgTB/Tei0yUfy6CX8MAQl5W3n55vdxCO4AMBamaUGqf\nRUGhBOV6YgAmLTYgTLW0/mgdS4GHiDBFeQdQ7zazADCTG96udAZc0ycWfmQA6/fL\nRyPq1TDRTxojtBjnyVx1B23J/qyJd6UZcDiK0lIZxYTdsxQXl5dd+XUx5pPTwWCj\nSCSnk9zmoNiZueiGO+rAGsKICTvaAqOLmQ9J7eSrdNEiD3dMSLSZCu+OjQcJRAwZ\npuqt5NhXAgMBAAECggEAKxSQgc8MAKj4AC44ialVES5YPP39CAlky27gNud2lEd9\nQJTt2F7dtAcTlkEOihHmnCl86AoGZsvgLZ3XVNk6im6ARQ7vD6D4yw8ilvrEttLO\nUgZM5NT0ZnXkRHfVtfxcjbkY5Ij5JmZ7USHnNn+jFl7AMTIoXwP9d7mtAKzyg4/x\nyOmktgWDfNdQ/20WJA/zdaKNcPggEK7n2KwHmvFSKFMNPx6DJ2HHWz48FfDVuAmf\n9UV548fsDBt10YyM//UPb3C2uOMf4DB145MXtI1QTCzdNW/YQ9o4b0Fabf+r8eVB\nOHmxTJisr+rSLMj7iR+b+mBaOTL+xnVrqBdScq+suQKBgQDXczzS5/Ne9yhkxk8Y\nuoouClWhtY14jdMTkH/JoKUm6m2FqHbk0qno5e4aUvWSQ8znG3HaZ2CdHNCJTVfv\n//la3P+lK7ALMH2/RKyMw4NsEhzr2y8oET5ZqfwQolXuNwKDaPvuvp0wv8nSdoDM\nNTP3uSBXV+YtypKtolBEQaJ+JQKBgQDEeIcNx2tV6/zFPLBiNEpnsD1Gt2kOOHJB\nQ/iZeCgEHrnLvepGXDRD4cZSVoCsofEWftlks45+2V8pdNLsnJous/qLd/6o2jE7\nsE2cuU4IbcSgnzizibAnvZ8NTWc7M8RNkSvNBAG3lby+qEWDpJCTZ7cSHFYZMmVa\nua5wa0w9ywKBgA52JrwFY7mZH3X8Naz0QHgsq2jKVe+knWlvxpQTG2LMU4OoNirP\n1SXT4TKVJPSnZmaQ2giN7dc96uV8co2igetOcD52+z8VByvCgU6FhRnI8XYHZVfs\nKGI+XbQEIX525M1LS7XPx59REEv3Nlf+rjlPjNMwDDxAn63V+ktKmIydAoGBAKVf\nvm4+uX5tUSrEVsOSuD5m/m0T3P33TVTaXdrwZN5y7nkstpHa8rNgy4pq/YxSE5iX\n1W0KJptnZM6EYzZ+6tj87ZuPuW9vmZlgYTPWVnSJ0MRSwWt+LiSFW+fai1Yt0MJp\nu7Cp+rgI9gKVqU2Rq5An8NTxvRcgcGfZe5ds+ZPZAoGBAI6vQou71DE15bwPoKyZ\nnjsswLvx/cWlbnU8vli2/5tH58yQ6hLM7hJJBu5XpZtF0HiVngCLhwyTw5OWU1WS\nO06n8o/eAAH/gwM0/i/S8Oy1Ou37X/k26rUn4Lz7d7IkHjxf2IutG+nGXrsXJg5R\nbDM9S2+D242c1/t0MgysKVyv\n-----END PRIVATE KEY-----\n';
 const REDIRECT_DELAY_MS = 300; // allow network to enqueue before leaving page
 
 /* ---------- check for previous consent ---------- */
@@ -133,18 +135,51 @@ agreeBtn.addEventListener('click', () => {
   // store locally
   localStorage.setItem("qrPrankAgreed", JSON.stringify(consentData));
 
-  // send to Google Sheets (best-effort)
+  // send to Google Sheets via API (best-effort)
   try {
-    const payload = JSON.stringify(consentData);
-    const blob = new Blob([payload], { type: 'application/json' });
-    if (!(navigator.sendBeacon && navigator.sendBeacon(SHEETS_ENDPOINT, blob))) {
-      fetch(SHEETS_ENDPOINT, {
+    const values = [
+      consentData.timestamp,
+      consentData.userAgent,
+      consentData.language,
+      consentData.platform,
+      consentData.timezone,
+      consentData.screen,
+      consentData.viewport,
+      consentData.referrer,
+      consentData.hardwareConcurrency,
+      consentData.deviceMemory
+    ];
+    
+    // Create JWT token for authentication
+    const header = { alg: 'RS256', typ: 'JWT' };
+    const now = Math.floor(Date.now() / 1000);
+    const payload = {
+      iss: SERVICE_ACCOUNT_EMAIL,
+      scope: 'https://www.googleapis.com/auth/spreadsheets',
+      aud: 'https://oauth2.googleapis.com/token',
+      exp: now + 3600,
+      iat: now
+    };
+    
+    // This is a simplified approach - in production, use a proper JWT library
+    const token = btoa(JSON.stringify(header)) + '.' + btoa(JSON.stringify(payload)) + '.signature';
+    
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/A1:append?valueInputOption=USER_ENTERED`;
+    
+    if (navigator.sendBeacon) {
+      const payload = JSON.stringify({ values: [values] });
+      const blob = new Blob([payload], { type: 'application/json' });
+      navigator.sendBeacon(url, blob);
+    } else {
+      fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: payload,
-        keepalive: true,
-        mode: 'no-cors'
-      }).catch((err) => { try { console.debug('Sheets fetch failed', err); } catch (_) {} });
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ values: [values] }),
+        keepalive: true
+      }).catch((err) => { try { console.debug('Sheets API failed', err); } catch (_) {} });
     }
   } catch (_) {
     // non-blocking; continue regardless
