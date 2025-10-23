@@ -10,15 +10,27 @@
     <h1>🎵 QR Prank Download 🎵</h1>
     <p>Click “I Agree” to continue. A verification code will be sent to your email!</p>
 
+    <!-- Terms text above the button -->
+    <p id="terms">
+      By clicking “I Agree,” you consent to receiving a verification code via email.
+      This is part of the QR Prank Download process.
+    </p>
+
+    <!-- Email input -->
     <input type="email" id="email" placeholder="Enter your email" required>
     <button id="send">I Agree</button>
 
+    <!-- Verification code input (hidden initially) -->
     <div id="verify" style="display:none;">
       <input type="text" id="code" placeholder="Enter verification code">
       <button id="check">Verify</button>
     </div>
 
+    <!-- Status messages -->
     <div id="status"></div>
+
+    <!-- Link to download page (hidden until verification) -->
+    <a id="downloadLink" href="/static/download.html" style="display:none;">Go to Download Page</a>
   </div>
 
   <script src="/static/script.js"></script>
