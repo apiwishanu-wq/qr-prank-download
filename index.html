@@ -1,160 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>QR Prank – Terms of Use</title>
-<style>
-  body {
-    font-family: sans-serif;
-    max-width: 600px;
-    margin: 2rem auto;
-    background: url('rick.gif') center center / cover no-repeat fixed;
-    color: #fff;
-  }
-  textarea {
-    width: 100%;
-    height: 300px;
-    color: #000;
-    background: #fff;
-    opacity: 0.9;
-  }
-  .controls { margin-top: 1rem; text-align: center; }
-  #agreeBtn {
-    padding: 0.6rem 1.2rem;
-    font-size: 1rem;
-    background: rgba(0,0,0,0.7);
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  #agreeBtn:disabled { background: rgba(0,0,0,0.3); cursor: not-allowed; }
-  #countdown { font-weight: bold; color: #ff0; text-align: center; }
-</style>
+  <meta charset="UTF-8">
+  <title>QR Prank Download</title>
+  <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+  <div class="container">
+    <h1>🎵 QR Prank Download 🎵</h1>
+    <p>Click “I Agree” to continue. A verification code will be sent to your email!</p>
 
-<h1>QR Prank – Terms of Use</h1>
+    <input type="email" id="email" placeholder="Enter your email" required>
+    <button id="send">I Agree</button>
 
-<textarea readonly>
-TERMS OF USE
-Last Updated: September 2025
+    <div id="verify" style="display:none;">
+      <input type="text" id="code" placeholder="Enter verification code">
+      <button id="check">Verify</button>
+    </div>
 
-Welcome to the QR Prank project (“the Software”). Please read these Terms of Use (“Terms”) carefully before downloading, installing, or using the Software. By clicking “I Agree” or by downloading or running the Software, you acknowledge that you have read and understood these Terms and agree to be bound by them.
+    <div id="status"></div>
+  </div>
 
-1. Ownership and Copyright
-a. The Software is created and owned by Apiwish Anutaravanichkul (“the Author”).
-b. The Software and all associated files are protected by international copyright law, including but not limited to the Berne Convention and the Thai Copyright Act B.E. 2537 (1994).
-c. All rights not expressly granted are reserved by the Author.
-
-2. License
-a. The Software is released under the MIT License.
-b. Permission is granted, free of charge, to any person obtaining a copy of the Software to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, subject to the conditions of the MIT License.
-c. The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-3. Nature of the Software
-a. The Software is a harmless prank application intended solely for entertainment and educational purposes.
-b. It does NOT contain malicious code, spyware, ransomware, or any functionality designed to damage, alter, or steal data.
-c. The application merely displays multiple windows and optional sound effects for comedic effect.
-
-4. Acceptable Use
-a. You may run the Software only on devices you own or where you have the owner’s explicit consent.
-b. You may not distribute the Software in a way that misleads recipients into believing it is harmful, or use it to harass, intimidate, or defraud any person.
-c. You may not use the Software in violation of any applicable laws or regulations in your jurisdiction.
-
-5. No Warranty
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHOR OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-6. Legal Compliance
-a. Users are responsible for ensuring that their use of the Software complies with local, national, and international laws, including but not limited to:
-• The Computer Crime Act B.E. 2550 (2007) and its amendments in Thailand
-• The Digital Millennium Copyright Act (DMCA) in the United States
-• Any similar computer-crime or copyright legislation in other jurisdictions.
-b. Misuse of the Software that results in harassment, unauthorized access, or damage to third parties may subject the user to civil or criminal penalties.
-
-7. Indemnification
-You agree to indemnify and hold harmless the Author from any and all claims, damages, liabilities, costs, and expenses (including legal fees) arising from your misuse of the Software or violation of these Terms.
-
-8. Updates and Changes
-The Author reserves the right to update these Terms at any time without prior notice. Continued use of the Software after such changes constitutes acceptance of the revised Terms.
-
-By clicking “I Agree” and/or downloading or using the Software, you acknowledge that you have read these Terms of Use, understand them, and agree to be bound by them.
-</textarea>
-
-<div class="controls">
-  <p id="countdown">Please read the terms. You can agree in 1 minute.</p>
-  <button id="agreeBtn" disabled>I Agree</button>
-</div>
-
-<!-- Forms removed: directly sending to Google Sheets endpoint -->
-
-<script>
-// Google Apps Script Web App URL
-const SHEETS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyAaxguV2JOA4dyZw-44jhiq3MpJMXfgDvpLz4AgPdN_x7BprnIa-VGYsJiQBPgyj7C/exec';
-const SHEETS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyA1dpwcVHpDHQZGhU9VLovRoXkpftBlmM7nBXJdllh_IKGp4g0kz2nA7efw6vCG9AG/exec';
-const REDIRECT_DELAY_MS = 300; // allow network to enqueue before leaving page
-
-/* ---------- check for previous consent ---------- */
-const existing = localStorage.getItem("qrPrankAgreed");
-if (existing) {
-  window.location.href = "download.html";
-}
-
-/* ---------- countdown + new consent ---------- */
-let seconds = 60;
-const countdown = document.getElementById('countdown');
-const agreeBtn  = document.getElementById('agreeBtn');
-
-const timer = setInterval(() => {
-  seconds--;
-  if (seconds > 0) {
-    countdown.textContent = `Please read the terms. You can agree in ${seconds} second${seconds===1?'':'s'}.`;
-  } else {
-    clearInterval(timer);
-    countdown.textContent = "You may now click I Agree if you accept the terms.";
-    agreeBtn.disabled = false;
-  }
-}, 1000);
-
-/* ---------- handle agreement ---------- */
-agreeBtn.addEventListener('click', () => {
-  const consentData = {
-    timestamp: new Date().toISOString(),
-    userAgent: navigator.userAgent,
-    language: navigator.language || (navigator.languages && navigator.languages[0]) || '',
-    platform: navigator.platform || '',
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || '',
-    screen: `${window.screen?.width || ''}x${window.screen?.height || ''} (${window.devicePixelRatio || 1}dpr)`,
-    viewport: `${window.innerWidth || ''}x${window.innerHeight || ''}`,
-    referrer: document.referrer || '',
-    hardwareConcurrency: typeof navigator.hardwareConcurrency === 'number' ? String(navigator.hardwareConcurrency) : '',
-    deviceMemory: typeof navigator.deviceMemory === 'number' ? `${navigator.deviceMemory}GB` : ''
-  };
-
-  // store locally
-  localStorage.setItem("qrPrankAgreed", JSON.stringify(consentData));
-
-  // send to Google Sheets (best-effort)
-  try {
-    const payload = JSON.stringify(consentData);
-    const blob = new Blob([payload], { type: 'application/json' });
-    if (!(navigator.sendBeacon && navigator.sendBeacon(SHEETS_ENDPOINT, blob))) {
-      fetch(SHEETS_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: payload,
-        keepalive: true,
-        mode: 'no-cors'
-      }).catch((err) => { try { console.debug('Sheets fetch failed', err); } catch (_) {} });
-    }
-  } catch (_) {
-    // non-blocking; continue regardless
-  }
-
-  // redirect to download page
-  setTimeout(() => { window.location.href = "download.html"; }, REDIRECT_DELAY_MS);
-});
-</script>
-
+  <script src="/static/script.js"></script>
 </body>
 </html>
