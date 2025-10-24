@@ -1,75 +1,49 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Form
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-from pydantic import BaseModel
-import smtplib, os, random, time
-from email.mime.text import MIMEText
-from fastapi.middleware.cors import CORSMiddleware
+import random
+import smtplib
+import os
 
 app = FastAPI()
 
-# Serve your frontend
+# Serve your frontend static files
 app.mount("/static", StaticFiles(directory="frontend"), name="static")
 
-@app.get("/")
-def root():
-    return FileResponse("frontend/index.html")
+# In-memory storage for verification codes (simple version)
+verification_codes = {}
 
-# Allow your frontend to call the backend
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # replace with your frontend URL for security
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Environment variables for email
+EMAIL_FROM = os.environ.get("EMAIL_FROM")
+EMAIL_PASSWORD = os.environ.get("EMAIL_APP_PASSWORD")
 
-# In-memory store for verification codes
-codes = {}  # {email: (code, expiry)}
 
-FROM = os.environ.get("EMAIL_FROM")
-PASSWORD = os.environ.get("EMAIL_APP_PASSWORD")
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
+def send_email(to_email: str, code: str):
+    """Send verification code via Gmail SMTP."""
+    with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
+        smtp.ehlo()
+        smtp.starttls()
+        smtp.login(EMAIL_FROM, EMAIL_PASSWORD)
+        subject = "Your QR Prank Verification Code"
+        body = f"Hello! Your verification code is: {code}"
+        message = f"Subject: {subject}\n\n{body}"
+        smtp.sendmail(EMAIL_FROM, to_email, message)
 
-class EmailBody(BaseModel):
-    email: str
-
-class VerifyBody(BaseModel):
-    email: str
-    code: str
 
 @app.post("/send-code")
-def send_code(data: EmailBody):
-    if not FROM or not PASSWORD:
-        raise HTTPException(status_code=500, detail="Server email credentials not configured")
-
-    code = f"{random.randint(0,999999):06d}"
-    expiry = time.time() + 300  # 5 min expiry
-    codes[data.email] = (code, expiry)
-
-    msg = MIMEText(f"Your verification code is {code}\nExpires in 5 minutes.")
-    msg["Subject"] = "QR Prank Verification Code"
-    msg["From"] = FROM
-    msg["To"] = data.email
-
+async def send_code(email: str = Form(...)):
+    code = str(random.randint(100000, 999999))  # 6-digit code
+    verification_codes[email] = code
     try:
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as s:
-            s.starttls()
-            s.login(FROM, PASSWORD)
-            s.sendmail(FROM, [data.email], msg.as_string())
-    except smtplib.SMTPAuthenticationError:
-        raise HTTPException(status_code=500, detail="SMTP authentication failed")
+        send_email(email, code)
+        return JSONResponse({"status": "ok", "message": "Verification code sent!"})
+    except Exception as e:
+        return JSONResponse({"status": "error", "message": str(e)})
 
-    return {"ok": True}
 
 @app.post("/verify-code")
-def verify_code(data: VerifyBody):
-    entry = codes.get(data.email)
-    if not entry:
-        raise HTTPException(status_code=400, detail="No code sent")
-    code, expiry = entry
-    if time.time() > expiry:
-        raise HTTPException(status_code=400, detail="Code expired")
-    if data.code != code:
-        raise HTTPException(status_code=400, detail="Incorrect code")
-    return {"ok": True}
+async def verify_code(email: str = Form(...), code: str = Form(...)):
+    correct_code = verification_codes.get(email)
+    if correct_code and correct_code == code:
+        return JSONResponse({"status": "ok", "message": "Code verified!"})
+    return JSONResponse({"status": "error", "message": "Invalid code."})
